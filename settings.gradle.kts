@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Counter25"
+rootProject.name = "IntroApp"
 include(":app")

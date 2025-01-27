@@ -173,3 +173,15 @@ fun CounterCard(
         }
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun CounterCardPreview() {
+    CounterCard(Counter(0))
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CounterCardNonZeroPreview() {
+    CounterCard(Counter(1))
+}

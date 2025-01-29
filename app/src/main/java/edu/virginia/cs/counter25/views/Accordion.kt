@@ -35,13 +35,13 @@ fun Accordion(
     headerText: String,
     bodyText: String,
     isExpanded: Boolean = false,
-    toggleExpansion: (Unit) -> Unit
+    onHeaderClick: () -> Unit = {}
 ) {
     Column(
         verticalArrangement = Arrangement.Top
     ) {
         Row(
-            modifier = Modifier.clickable { toggleExpansion }
+            modifier = Modifier.clickable(onClick = onHeaderClick)
         ) {
             Text(headerText, style = MaterialTheme.typography.titleLarge)
             Image(Icons.Default.KeyboardArrowDown, contentDescription = null)
@@ -70,7 +70,7 @@ fun AccordionCollapsedPreview() {
     Accordion(
         headerText = "Preview Header",
         bodyText = LoremIpsum(100).values.joinToString(" ")
-    ) {}
+    )
 }
 
 @Preview(showBackground = true)
@@ -80,5 +80,5 @@ fun AccordionExpandedPreview() {
         headerText = "Preview Header",
         bodyText = LoremIpsum(50).values.joinToString(" "),
         isExpanded = true
-    ) {}
+    )
 }

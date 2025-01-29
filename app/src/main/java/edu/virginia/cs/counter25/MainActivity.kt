@@ -20,29 +20,36 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import edu.virginia.cs.counter25.ui.theme.Counter25Theme
 import edu.virginia.cs.counter25.views.Accordion
 import edu.virginia.cs.counter25.views.CounterCard
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
-    private val viewModel by viewModels<MainActivityViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         println("MainActivity created")
         super.onCreate(savedInstanceState)
+
+
+        val viewModel:MainActivityViewModel by viewModels<MainActivityViewModel>()
 
         enableEdgeToEdge()
         setContent {
             Counter25Theme {
                 Scaffold(Modifier.fillMaxSize()) { innerPadding ->
                     Surface(modifier = Modifier.padding(innerPadding)) {
-                        MainActivityScreen()
+                        MainActivityScreen(viewModel)
                     }
                 }
             }
@@ -50,32 +57,35 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun MainActivityScreen() {
-        Column {
-            val isAccordion1Expanded by viewModel.accordion1State.collectAsState()
-            val isAccordion2Expanded by viewModel.accordion2State.collectAsState()
+    private fun MainActivityScreen(
+        viewModel: MainActivityViewModel
+    ) {
+        val uiState by viewModel.uiState.collectAsState()
 
+        Column {
             Accordion(
                 headerText = "Welcome to the counters app",
                 bodyText = "Below is an application to demonstrate the basics of a view model",
-                isExpanded = isAccordion1Expanded
-            ) {
-                println("MainActivity: Clicked Accordion#1")
-                viewModel.accordion1Toggle()
-            }
+                isExpanded = uiState.accordion1Expanded,
+                onHeaderClick = { viewModel.accordion1Toggle() }
+            )
             Spacer(modifier = Modifier.height(4.dp))
             Accordion(
                 headerText = "About the app...",
                 bodyText = "Below is a counter. Use the up arrow to increment the number, and the down arrow to decrement the number. The refresh button will reset the number to zero. Enjoy!",
-                isExpanded = isAccordion2Expanded
-            ) {
-                println("MainActivity: Clicked Accordion#2")
-                viewModel.accordion1Toggle()
-            }
+                isExpanded = uiState.accordion2Expanded
+            ) { viewModel.accordion2Toggle() }
+
             Spacer(modifier = Modifier.height(4.dp))
             LazyColumn {
-                itemsIndexed(viewModel.countersState) { index, counter ->
-                    CounterCard(counter)
+                itemsIndexed(uiState.counters) { index, counter ->
+                    CounterCard(
+                        counter = counter,
+                        onIncrement = { viewModel.incrementCounter(index) },
+                        onDecrement = { viewModel.decrementCounter(index) },
+                        onReset = { viewModel.resetCounter(index) },
+                        onDelete = { viewModel.deleteCounter(index) },
+                    )
                 }
             }
             IconButton({ viewModel.addCounter("Counter #${viewModel.size + 1}") }) {

@@ -4,73 +4,109 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.VisibilityThreshold
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import edu.virginia.cs.counter25.ui.theme.Counter25Theme
+import edu.virginia.cs.counter25.views.Accordion
+import edu.virginia.cs.counter25.views.CounterCard
 
 class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        var counter = Counter()
+    private val viewModel by viewModels<MainActivityViewModel>()
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        println("MainActivity created")
         super.onCreate(savedInstanceState)
+
         enableEdgeToEdge()
         setContent {
             Counter25Theme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Column {
-                        Greeting(
-                            name = "Android",
-                            modifier = Modifier.padding(innerPadding)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Accordion(
-                            "Counter App",
-                            "Below is a counter. Use the up arrow to increment the number, and the down arrow to decrement the number. The refresh button will reset the number to zero. Enjoy!"
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        CounterCard(counter)
+                Scaffold(Modifier.fillMaxSize()) { innerPadding ->
+                    Surface(modifier = Modifier.padding(innerPadding)) {
+                        MainActivityScreen()
                     }
                 }
             }
         }
+    }
+
+    @Composable
+    private fun MainActivityScreen() {
+        Column {
+            val isAccordion1Expanded by viewModel.accordion1State.collectAsState()
+            val isAccordion2Expanded by viewModel.accordion2State.collectAsState()
+
+            Accordion(
+                headerText = "Welcome to the counters app",
+                bodyText = "Below is an application to demonstrate the basics of a view model",
+                isExpanded = isAccordion1Expanded
+            ) {
+                println("MainActivity: Clicked Accordion#1")
+                viewModel.accordion1Toggle()
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Accordion(
+                headerText = "About the app...",
+                bodyText = "Below is a counter. Use the up arrow to increment the number, and the down arrow to decrement the number. The refresh button will reset the number to zero. Enjoy!",
+                isExpanded = isAccordion2Expanded
+            ) {
+                println("MainActivity: Clicked Accordion#2")
+                viewModel.accordion1Toggle()
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            LazyColumn {
+                itemsIndexed(viewModel.countersState) { index, counter ->
+                    CounterCard(counter)
+                }
+            }
+            IconButton({ viewModel.addCounter("Counter #${viewModel.size + 1}") }) {
+                Icon(Icons.Default.Add, contentDescription = "add counter")
+            }
+        }
+    }
+
+    override fun onResume() {
+        println("Main Activity: Resumed")
+        super.onResume()
+    }
+
+    override fun onStart() {
+        println("Main Activity: Started")
+        super.onStart()
+    }
+
+    override fun onPause() {
+        println("Main Activity: Paused")
+        super.onPause()
+    }
+
+    override fun onStop() {
+        println("Main Activity: Stopped")
+        super.onStop()
+    }
+
+    override fun onDestroy() {
+        println("Main Activity: Destroyed")
+        super.onDestroy()
     }
 }
 
@@ -91,97 +127,4 @@ fun GreetingPreview() {
     }
 }
 
-@Composable
-fun Accordion(
-    headerText: String,
-    bodyText: String,
-    initiallyVisible: Boolean = false
-) {
-    var isExpanded by remember { mutableStateOf(initiallyVisible) }
-    Column(
-        verticalArrangement = Arrangement.Top
-    ) {
-        Row(
-            modifier = Modifier.clickable { isExpanded = !isExpanded }
-        ) {
-            Text(headerText, style = MaterialTheme.typography.titleLarge )
-            Image(Icons.Default.KeyboardArrowDown, contentDescription = null)
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        AnimatedVisibility(
-            visible = isExpanded,
-            enter = expandVertically(
-                spring(
-                    stiffness = Spring.StiffnessMedium,
-                    visibilityThreshold = IntSize.VisibilityThreshold
-                )
-            ),
-            exit = shrinkVertically()
-        ) {
-            Box {
-                BasicText(text = bodyText, style = MaterialTheme.typography.bodyLarge )
-            }
-        }
-    }
-}
 
-@Preview(showBackground = true)
-@Composable
-fun AccordionCollapsedPreview() {
-    Accordion(
-        headerText = "Preview Header",
-        bodyText = LoremIpsum(100).values.joinToString(" ")
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun AccordionExpandedPreview() {
-    Accordion(
-        headerText = "Preview Header",
-        bodyText = LoremIpsum(50).values.joinToString(" "),
-        initiallyVisible = true
-    )
-}
-
-@Composable
-fun CounterCard(
-    initialCounter: Counter = Counter(0)
-) {
-    var counter by remember { mutableStateOf(initialCounter) }
-    Column {
-        Row {
-            Text(text = "${counter.value}", style = MaterialTheme.typography.titleLarge)
-        }
-        Row {
-            Button(
-                onClick = { counter = counter.increment() }
-            ) {
-                Image(Icons.Default.KeyboardArrowUp, contentDescription = null)
-            }
-            Button(
-                onClick = { counter = counter.decrement() },
-                enabled = counter.value > 0
-            ) {
-                Image(Icons.Default.KeyboardArrowDown, contentDescription = null)
-            }
-            Button(
-                onClick = { counter = counter.reset() }
-            ) {
-                Image(Icons.Filled.Refresh, contentDescription = null)
-            }
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun CounterCardPreview() {
-    CounterCard(Counter(0))
-}
-
-@Preview(showBackground = true)
-@Composable
-fun CounterCardNonZeroPreview() {
-    CounterCard(Counter(1))
-}

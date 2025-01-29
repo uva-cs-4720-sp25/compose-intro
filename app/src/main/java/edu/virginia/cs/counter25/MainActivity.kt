@@ -5,17 +5,26 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -24,6 +33,8 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,7 +49,7 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        println("MainActivity created")
+        println("Main Activity: Created")
         super.onCreate(savedInstanceState)
 
 
@@ -77,7 +88,7 @@ class MainActivity : ComponentActivity() {
             ) { viewModel.accordion2Toggle() }
 
             Spacer(modifier = Modifier.height(4.dp))
-            LazyColumn {
+            LazyColumn(modifier = Modifier.weight(1f)) {
                 itemsIndexed(uiState.counters) { index, counter ->
                     CounterCard(
                         counter = counter,
@@ -88,8 +99,21 @@ class MainActivity : ComponentActivity() {
                     )
                 }
             }
-            IconButton({ viewModel.addCounter("Counter #${viewModel.size + 1}") }) {
-                Icon(Icons.Default.Add, contentDescription = "add counter")
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                IconButton({ viewModel.addCounter("Counter #${viewModel.size + 1}") }) {
+                    Icon(
+                        Icons.TwoTone.Add,
+                        contentDescription = "add counter",
+                        tint = Color.White,
+                        modifier = Modifier.size(120.dp)
+                            .background(MaterialTheme.colorScheme.secondary)
+                            .clip(CircleShape)
+
+                    )
+                }
             }
         }
     }

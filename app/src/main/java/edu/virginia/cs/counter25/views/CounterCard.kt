@@ -36,7 +36,7 @@ fun CounterCard(
         modifier = Modifier.padding(4.dp)
     ) {
         Column(
-            Modifier.background(MaterialTheme.colorScheme.inversePrimary)
+            Modifier.background(MaterialTheme.colorScheme.primaryContainer)
         ) {
             Text(text = "${counter.name}", style = MaterialTheme.typography.titleMedium)
             Text(text = "${counter.value}", style = MaterialTheme.typography.titleLarge)

@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,16 +36,22 @@ fun Accordion(
     headerText: String,
     bodyText: String,
     isExpanded: Boolean = false,
+    isLoading: Boolean = false,
     onHeaderClick: () -> Unit = {}
 ) {
     Column(
         verticalArrangement = Arrangement.Top
     ) {
         Row(
-            modifier = Modifier.clickable(onClick = onHeaderClick)
+            modifier = if (isLoading) Modifier
+                else Modifier.clickable(onClick = onHeaderClick )
         ) {
             Text(headerText, style = MaterialTheme.typography.titleLarge)
-            Image(Icons.Default.KeyboardArrowDown, contentDescription = null)
+            if (isLoading) {
+                CircularProgressIndicator()
+            } else {
+                Image(Icons.Default.KeyboardArrowDown, contentDescription = null)
+            }
         }
         Spacer(modifier = Modifier.height(4.dp))
         AnimatedVisibility(

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
@@ -22,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.twotone.Add
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -51,7 +53,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         println("Main Activity: Created")
         super.onCreate(savedInstanceState)
-
 
         val viewModel:MainActivityViewModel by viewModels<MainActivityViewModel>()
 
@@ -84,18 +85,20 @@ class MainActivity : ComponentActivity() {
             Accordion(
                 headerText = "About the app...",
                 bodyText = "Below is a counter. Use the up arrow to increment the number, and the down arrow to decrement the number. The refresh button will reset the number to zero. Enjoy!",
-                isExpanded = uiState.accordion2Expanded
-            ) { viewModel.accordion2Toggle() }
+                isLoading = uiState.isAccordion2Loading,
+                isExpanded = uiState.accordion2Expanded,
+                onHeaderClick = { viewModel.accordion2Toggle() }
+            )
 
             Spacer(modifier = Modifier.height(4.dp))
             LazyColumn(modifier = Modifier.weight(1f)) {
                 itemsIndexed(uiState.counters) { index, counter ->
                     CounterCard(
                         counter = counter,
-                        onIncrement = { viewModel.incrementCounter(index) },
-                        onDecrement = { viewModel.decrementCounter(index) },
-                        onReset = { viewModel.resetCounter(index) },
-                        onDelete = { viewModel.deleteCounter(index) },
+                        onIncrementClick = { viewModel.incrementCounter(index) },
+                        onDecrementClick = { viewModel.decrementCounter(index) },
+                        onResetClick = { viewModel.resetCounter(index) },
+                        onDeleteClick = { viewModel.deleteCounter(index) }
                     )
                 }
             }

@@ -22,15 +22,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import edu.virginia.cs.counter25.MainActivityViewModel
 import edu.virginia.cs.counter25.model.Counter
+import kotlinx.coroutines.launch
 
 @Composable
 fun CounterCard(
     counter: Counter,
-    onIncrement: () -> Unit,
-    onDecrement: () -> Unit,
-    onReset: () -> Unit,
-    onDelete: () -> Unit
+    onIncrementClick: () -> Unit,
+    onDecrementClick: () -> Unit,
+    onResetClick: () -> Unit,
+    onDeleteClick:() -> Unit
 ) {
     Surface(
         modifier = Modifier.padding(4.dp)
@@ -42,23 +46,23 @@ fun CounterCard(
             Text(text = "${counter.value}", style = MaterialTheme.typography.titleLarge)
             Row {
                 Button(
-                    onClick = onIncrement
+                    onClick = onIncrementClick
                 ) {
                     Image(Icons.Default.KeyboardArrowUp, contentDescription = null)
                 }
                 Button(
-                    onClick = onDecrement,
+                    onClick = onDecrementClick,
                     enabled = counter.isDecrementable()
                 ) {
                     Image(Icons.Default.KeyboardArrowDown, contentDescription = null)
                 }
                 Button(
-                    onClick = onReset
+                    onClick = onResetClick,
                 ) {
                     Image(Icons.Filled.Refresh, contentDescription = null)
                 }
                 Button(
-                    onClick = onDelete
+                    onClick = onDeleteClick
                 ) {
                     Image(Icons.Filled.Delete, contentDescription = null)
                 }

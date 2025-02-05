@@ -37,6 +37,7 @@ class DetailActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Counter25Theme {
+                @Suppress("UNCHECKED_CAST")
                 val viewModel by viewModels<DetailViewModel>(
                     factoryProducer = {
                         object: ViewModelProvider.Factory {

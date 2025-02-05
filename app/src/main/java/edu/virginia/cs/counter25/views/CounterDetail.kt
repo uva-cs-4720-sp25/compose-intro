@@ -29,6 +29,8 @@ fun CounterDetail(
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
+        Text("Current Name: ${counter.name}")
+
         OutlinedTextField(
             value = nameEntry,
             onValueChange = {

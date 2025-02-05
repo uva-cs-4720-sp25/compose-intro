@@ -54,6 +54,8 @@ class MainActivity : ComponentActivity() {
             "counters.db"
         ).build()
     }
+
+    @Suppress("UNCHECKED_CAST")
     private val viewModel by viewModels<MainActivityViewModel>(
         factoryProducer = {
             object: ViewModelProvider.Factory {
@@ -123,11 +125,15 @@ class MainActivity : ComponentActivity() {
     ) {
         val counters by viewModel.countersState.collectAsState()
         val context = LocalContext.current
-        val detailLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val detailLauncher = rememberLauncherForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 viewModel.refreshCounters()
             }
         }
+
+
 
         Column(modifier = Modifier.fillMaxWidth()) {
             LazyColumn(modifier = Modifier.weight(1f)) {

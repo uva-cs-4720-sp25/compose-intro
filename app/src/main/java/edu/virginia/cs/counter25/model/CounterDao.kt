@@ -9,6 +9,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CounterDao {
+   @Query("SELECT * FROM counters WHERE id=:id")
+   fun getCounterById(id: Long): Flow<Counter>
+
    @Query("SELECT * FROM counters")
    fun getAll(): Flow<List<Counter>>
 

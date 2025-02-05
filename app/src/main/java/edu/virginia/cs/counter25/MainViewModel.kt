@@ -4,12 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import edu.virginia.cs.counter25.model.Counter
 import edu.virginia.cs.counter25.model.CounterDao
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -65,6 +67,12 @@ class MainActivityViewModel(
     val isAccordion2Loading:Boolean = accordionState.value.isAccordion2Loading
 
     val size get() = _countersState.value.size
+
+    fun refreshCounters() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _countersState.emit(counterDao.getAll().first())
+        }
+    }
 
     fun addCounter(newName: String) {
         viewModelScope.launch(IO) {

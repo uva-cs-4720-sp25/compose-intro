@@ -1,9 +1,13 @@
 package edu.virginia.cs.counter25
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -25,16 +29,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.room.Room
@@ -80,7 +82,22 @@ class MainActivity : ComponentActivity() {
     private fun MainActivityScreen(
         viewModel: MainActivityViewModel
     ) {
-        Column {
+        Column(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Accordions(viewModel)
+            Spacer(modifier = Modifier.height(4.dp))
+            CountersSection(viewModel)
+        }
+    }
+
+    @Composable
+    fun Accordions(
+        viewModel: MainActivityViewModel
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth()
+        ) {
             val accordionState by viewModel.accordionState.collectAsState()
             Accordion(
                 headerText = "Welcome to the counters app",
@@ -96,18 +113,42 @@ class MainActivity : ComponentActivity() {
                 isExpanded = accordionState.accordion2Expanded,
                 onHeaderClick = { viewModel.accordion2Toggle() }
             )
+        }
+    }
 
-            Spacer(modifier = Modifier.height(4.dp))
-
+    @Composable
+    fun CountersSection(
+        viewModel: MainActivityViewModel
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
             val counters by viewModel.countersState.collectAsState()
-            LazyColumn(modifier = Modifier.weight(1f)) {
+            LazyColumn(
+                modifier = Modifier.weight(1f)
+            ) {
                 itemsIndexed(counters) { index, counter ->
+                    val context = LocalContext.current
+                    val detailLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                        if (result.resultCode == Activity.RESULT_OK) {
+                            // Refresh ViewModel data when returning
+                            viewModel.refreshCounters()
+                        }
+                    }
+
                     CounterCard(
                         counter = counter,
                         onIncrementClick = { viewModel.incrementCounter(counter) },
                         onDecrementClick = { viewModel.decrementCounter(counter) },
                         onResetClick = { viewModel.resetCounter(counter) },
-                        onDeleteClick = { viewModel.deleteCounter(counter) }
+                        onDeleteClick = { viewModel.deleteCounter(counter) },
+                        onDetail = {
+                            val detailIntent = Intent(
+                                context,
+                                DetailActivity::class.java
+                            ).apply {
+                                putExtra("id", counter.id)
+                            }
+                            detailLauncher.launch(detailIntent)
+                        }
                     )
                 }
             }
@@ -156,21 +197,5 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        fontSize = 32.sp,
-        modifier = modifier,
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    Counter25Theme {
-        Greeting("Android")
-    }
-}
 
 

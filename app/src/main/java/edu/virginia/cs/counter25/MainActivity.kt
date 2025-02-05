@@ -15,15 +15,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.twotone.Add
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,7 +27,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -40,22 +35,35 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.room.Room
+import edu.virginia.cs.counter25.model.CounterDatabase
 import edu.virginia.cs.counter25.ui.theme.Counter25Theme
 import edu.virginia.cs.counter25.views.Accordion
 import edu.virginia.cs.counter25.views.CounterCard
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+    private val database by lazy {
+        Room.databaseBuilder(
+            applicationContext,
+            CounterDatabase::class.java,
+            "counters.db"
+        ).build()
+    }
+    private val viewModel by viewModels<MainActivityViewModel>(
+        factoryProducer = {
+            object: ViewModelProvider.Factory {
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    return MainActivityViewModel(database.counterDao()) as T
+                }
+            }
+        }
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         println("Main Activity: Created")
         super.onCreate(savedInstanceState)
-
-        val viewModel:MainActivityViewModel by viewModels<MainActivityViewModel>()
-
         enableEdgeToEdge()
         setContent {
             Counter25Theme {
@@ -72,33 +80,34 @@ class MainActivity : ComponentActivity() {
     private fun MainActivityScreen(
         viewModel: MainActivityViewModel
     ) {
-        val uiState by viewModel.uiState.collectAsState()
-
         Column {
+            val accordionState by viewModel.accordionState.collectAsState()
             Accordion(
                 headerText = "Welcome to the counters app",
                 bodyText = "Below is an application to demonstrate the basics of a view model",
-                isExpanded = uiState.accordion1Expanded,
+                isExpanded = accordionState.accordion1Expanded,
                 onHeaderClick = { viewModel.accordion1Toggle() }
             )
             Spacer(modifier = Modifier.height(4.dp))
             Accordion(
                 headerText = "About the app...",
                 bodyText = "Below is a counter. Use the up arrow to increment the number, and the down arrow to decrement the number. The refresh button will reset the number to zero. Enjoy!",
-                isLoading = uiState.isAccordion2Loading,
-                isExpanded = uiState.accordion2Expanded,
+                isLoading = accordionState.isAccordion2Loading,
+                isExpanded = accordionState.accordion2Expanded,
                 onHeaderClick = { viewModel.accordion2Toggle() }
             )
 
             Spacer(modifier = Modifier.height(4.dp))
+
+            val counters by viewModel.countersState.collectAsState()
             LazyColumn(modifier = Modifier.weight(1f)) {
-                itemsIndexed(uiState.counters) { index, counter ->
+                itemsIndexed(counters) { index, counter ->
                     CounterCard(
                         counter = counter,
-                        onIncrementClick = { viewModel.incrementCounter(index) },
-                        onDecrementClick = { viewModel.decrementCounter(index) },
-                        onResetClick = { viewModel.resetCounter(index) },
-                        onDeleteClick = { viewModel.deleteCounter(index) }
+                        onIncrementClick = { viewModel.incrementCounter(counter) },
+                        onDecrementClick = { viewModel.decrementCounter(counter) },
+                        onResetClick = { viewModel.resetCounter(counter) },
+                        onDeleteClick = { viewModel.deleteCounter(counter) }
                     )
                 }
             }

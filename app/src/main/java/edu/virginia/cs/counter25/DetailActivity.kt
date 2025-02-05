@@ -55,7 +55,7 @@ class DetailActivity : ComponentActivity() {
                             counter = counter,
                             onNameSave = { newName -> viewModel.renameCounter(newName) },
                             onFinish = {
-                                setResult(Activity.RESULT_OK)
+                                setResult(RESULT_OK)
                                 finish()
                             }
                         )

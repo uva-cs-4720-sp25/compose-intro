@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -120,20 +121,17 @@ class MainActivity : ComponentActivity() {
     fun CountersSection(
         viewModel: MainActivityViewModel
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            val counters by viewModel.countersState.collectAsState()
-            LazyColumn(
-                modifier = Modifier.weight(1f)
-            ) {
-                itemsIndexed(counters) { index, counter ->
-                    val context = LocalContext.current
-                    val detailLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-                        if (result.resultCode == Activity.RESULT_OK) {
-                            // Refresh ViewModel data when returning
-                            viewModel.refreshCounters()
-                        }
-                    }
+        val counters by viewModel.countersState.collectAsState()
+        val context = LocalContext.current
+        val detailLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                viewModel.refreshCounters()
+            }
+        }
 
+        Column(modifier = Modifier.fillMaxWidth()) {
+            LazyColumn(modifier = Modifier.weight(1f)) {
+                items(counters) { counter ->
                     CounterCard(
                         counter = counter,
                         onIncrementClick = { viewModel.incrementCounter(counter) },

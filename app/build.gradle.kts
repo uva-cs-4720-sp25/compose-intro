@@ -12,7 +12,7 @@ android {
     defaultConfig {
         applicationId = "edu.virginia.cs.counter25"
         minSdk = 27
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -64,8 +64,10 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     //Room
-    val roomVersion = "2.6.1"
-    implementation("androidx.room:room-runtime:$roomVersion")
-    implementation("androidx.room:room-ktx:$roomVersion")
-    ksp("androidx.room:room-compiler:$roomVersion")
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
+    //DataStore
+    implementation(libs.androidx.datastore.preferences)
 }

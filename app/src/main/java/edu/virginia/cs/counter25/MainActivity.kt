@@ -1,7 +1,10 @@
 package edu.virginia.cs.counter25
 
-import android.app.Activity
+
+import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -21,7 +24,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
@@ -30,6 +32,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,27 +44,32 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.room.Room
 import edu.virginia.cs.counter25.model.CounterDatabase
+import edu.virginia.cs.counter25.model.CounterRepository
+import edu.virginia.cs.counter25.model.UserPreferences
 import edu.virginia.cs.counter25.ui.theme.Counter25Theme
 import edu.virginia.cs.counter25.views.Accordion
 import edu.virginia.cs.counter25.views.CounterCard
 
+
+const val COUNTING_TUTORIAL_URL = "https://www.youtube.com/watch?v=2AoxCkySv34"
+const val COUNTING_VIDEO_CODE = "2AoxCkySv34"
+
 class MainActivity : ComponentActivity() {
-    private val database by lazy {
-        Room.databaseBuilder(
-            applicationContext,
-            CounterDatabase::class.java,
-            "counters.db"
-        ).build()
+    private val counterRepository by lazy {
+        CounterRepository(CounterDatabase.getDatabase(applicationContext).counterDao())
+    }
+
+    private val userPreferences by lazy {
+        UserPreferences.getInstance(applicationContext)
     }
 
     @Suppress("UNCHECKED_CAST")
     private val viewModel by viewModels<MainActivityViewModel>(
         factoryProducer = {
-            object: ViewModelProvider.Factory {
+            object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return MainActivityViewModel(database.counterDao()) as T
+                    return MainActivityViewModel(counterRepository, userPreferences) as T
                 }
             }
         }
@@ -90,7 +99,9 @@ class MainActivity : ComponentActivity() {
         ) {
             Accordions(viewModel)
             Spacer(modifier = Modifier.height(4.dp))
-            CountersSection(viewModel)
+            HowToCount()
+            Spacer(modifier = Modifier.height(4.dp))
+            CountersList(viewModel)
         }
     }
 
@@ -120,7 +131,51 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun CountersSection(
+    fun HowToCount() {
+        val context = LocalContext.current
+        TextButton(
+            onClick = { launchGenericBrowserIntent(context) },
+            modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)
+                .padding(8.dp)
+        ) {
+            Text("Tutorial on counting")
+        }
+    }
+
+    private fun launchGenericBrowserIntent(context: Context) {
+        val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse(COUNTING_TUTORIAL_URL))
+        context.startActivity(webIntent)
+    }
+
+    private fun launchYoutubeIntent(context: Context) {
+        val appIntent = Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:$COUNTING_VIDEO_CODE"))
+        val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse(COUNTING_TUTORIAL_URL))
+
+        try {
+            context.startActivity(appIntent) // Try to open in YouTube app
+        } catch (e: ActivityNotFoundException) {
+            context.startActivity(webIntent) // Fallback to browser if YouTube app is not installed
+        }
+    }
+
+    private fun launchChromeIntent(context: Context) {
+        val intent = Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse(COUNTING_TUTORIAL_URL)
+        ).apply {
+            setPackage("com.android.chrome") // Force opening in Chrome
+        }
+        try {
+            context.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            val fallbackIntent = Intent(Intent.ACTION_VIEW, Uri.parse(COUNTING_TUTORIAL_URL))
+            context.startActivity(fallbackIntent)
+        }
+    }
+
+
+    @Composable
+    fun CountersList(
         viewModel: MainActivityViewModel
     ) {
         val counters by viewModel.countersState.collectAsState()
@@ -128,12 +183,10 @@ class MainActivity : ComponentActivity() {
         val detailLauncher = rememberLauncherForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
+            if (result.resultCode == RESULT_OK) {
                 viewModel.refreshCounters()
             }
         }
-
-
 
         Column(modifier = Modifier.fillMaxWidth()) {
             LazyColumn(modifier = Modifier.weight(1f)) {
@@ -168,7 +221,6 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.size(120.dp)
                             .background(MaterialTheme.colorScheme.secondary)
                             .clip(CircleShape)
-
                     )
                 }
             }

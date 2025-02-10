@@ -3,7 +3,8 @@ package edu.virginia.cs.counter25
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import edu.virginia.cs.counter25.model.Counter
-import edu.virginia.cs.counter25.model.CounterDao
+import edu.virginia.cs.counter25.model.CounterRepository
+import edu.virginia.cs.counter25.model.UserPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.delay
@@ -22,8 +23,10 @@ data class AccordionState(
     val isAccordion2Loading: Boolean = false
 )
 
+
 class MainActivityViewModel(
-    private val counterDao: CounterDao
+    private val counterRepository: CounterRepository,
+    private val userPreferences: UserPreferences
 ) : ViewModel() {
     private val _accordionState = MutableStateFlow(AccordionState())
     val accordionState: StateFlow<AccordionState> = _accordionState.asStateFlow()
@@ -33,16 +36,33 @@ class MainActivityViewModel(
 
     init {
         viewModelScope.launch(IO) {
-            counterDao.getAll().collectLatest { data ->
+            counterRepository.getAll().collectLatest { data ->
                 _countersState.tryEmit(data)
             }
+        }
+        viewModelScope.launch {
+            userPreferences.getBooleanPreference(UserPreferences.PREFERENCE_ACCORDION_KEY)
+                .collectLatest { isExpanded ->
+                    _accordionState.update { currentState ->
+                        currentState.copy(
+                            accordion1Expanded = isExpanded
+                        )
+                    }
+                }
         }
     }
 
     fun accordion1Toggle() {
-        _accordionState.update { currentState ->
-            currentState.copy(
-                accordion1Expanded = !currentState.accordion1Expanded
+        viewModelScope.launch {
+            val newAccordionExpanded = !_accordionState.value.accordion1Expanded
+            _accordionState.update { currentState ->
+                currentState.copy(
+                    accordion1Expanded = newAccordionExpanded
+                )
+            }
+            userPreferences.saveBooleanPreference(
+                UserPreferences.PREFERENCE_ACCORDION_KEY,
+                newAccordionExpanded
             )
         }
     }
@@ -64,43 +84,41 @@ class MainActivityViewModel(
         }
     }
 
-    val isAccordion2Loading:Boolean = accordionState.value.isAccordion2Loading
-
     val size get() = _countersState.value.size
 
     fun refreshCounters() {
-        viewModelScope.launch(Dispatchers.IO) {
-            _countersState.emit(counterDao.getAll().first())
+        viewModelScope.launch(IO) {
+            _countersState.emit(counterRepository.getAll().first())
         }
     }
 
     fun addCounter(newName: String) {
         viewModelScope.launch(IO) {
-            counterDao.addCounter(Counter(name = newName))
+            counterRepository.addCounter(Counter(name = newName))
         }
     }
 
     fun incrementCounter(counter: Counter) {
         viewModelScope.launch(IO) {
-            counterDao.updateCounter(counter.increment())
+            counterRepository.updateCounter(counter.increment())
         }
     }
 
     fun decrementCounter(counter: Counter) {
         viewModelScope.launch(IO) {
-            counterDao.updateCounter(counter.decrement())
+            counterRepository.updateCounter(counter.decrement())
         }
     }
 
     fun resetCounter(counter: Counter) {
         viewModelScope.launch(IO) {
-            counterDao.updateCounter(counter.reset())
+            counterRepository.updateCounter(counter.reset())
         }
     }
 
     fun deleteCounter(counter: Counter) {
         viewModelScope.launch(IO) {
-            counterDao.deleteCounter(counter)
+            counterRepository.deleteCounter(counter)
         }
     }
 }

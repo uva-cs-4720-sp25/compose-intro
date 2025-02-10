@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import edu.virginia.cs.counter25.model.Counter
 import edu.virginia.cs.counter25.model.CounterRepository
 import edu.virginia.cs.counter25.model.UserPreferences
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
